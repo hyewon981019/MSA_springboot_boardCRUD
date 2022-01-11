@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0/EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	매퍼 인터페이스와 XML의 쿼리를 매칭해서 사용하려면
+	매퍼 인터페이스의 경로와 메소드의 이름이 쿼리의 id와 일치해야 함
+
+	예를 들면, board.mapper.BoardMapper 인터페이스의 selectBoardList 메서드와 매핑하기 위해서는
+	쿼리 id를 board.mapper.BoardMapper.selectBoardList로 지정해야 함
+
+	네임스페이지를 지정하면 공통으로 사용되는 경로를 생략하는 것이 가능
+ -->
+<mapper namespace="com.example.board.mapper.BoardMapper">
+
+    <!-- t_board 테이블의 정보를 읽어서 반환 -->
+    <select id="selectBoardList" resultType="com.example.board.dto.BoardDto">
+        <![CDATA[
+		select board_idx, title, hit_cnt, date_format(created_datetime, '%Y.%m.%d %H:%i:%s') as created_datetime
+		  from t_board
+		 where deleted_yn = 'N'
+		 order by board_idx desc
+	]]>
+    </select>
+
+<!--    useGenerateKeys : DBMS가 자동생성 키를 지원할 경우 사용하겠다-->
+<!--    keyProperty : 위의 것에 의해 리턴되는 키 -->
+    <insert id="insertBoard" parameterType="com.example.board.dto.BoardDto"
+            useGeneratedKeys="true" keyProperty="boardIdx">
+        <![CDATA[
+		insert into t_board (title, contents, created_datetime, creator_id)
+		values (#{title}, #{contents}, now(), 'tester');
+	]]>
+    </insert>
+
+    <!-- 게시판 상세 보기 쿼리 -->
+    <select id="selectBoardDetail" parameterType="int" resultType="com.example.board.dto.BoardDto">
+        <![CDATA[
+		select board_idx, title, hit_cnt, contents,
+		       date_format(created_datetime, '%Y.%m.%d %H:%i:%s') as created_datetime,
+		       creator_id
+		  from t_board
+		 where deleted_yn = 'N'
+		   and board_idx = #{boardIdx}
+	]]>
+    </select>
+    <!-- 카운트를 증가시키는 쿼리 -->
+    <update id="updateHitCount" parameterType="int">
+        <![CDATA[
+		update t_board set hit_cnt = hit_cnt + 1 where board_idx = #{boardIdx}
+	]]>
+    </update>
+
+    <update id="updateBoard" parameterType="com.example.board.dto.BoardDto">
+        update t_board set title = #{title}, contents = #{contents}
+        , updated_datetime = now(), updator_id = 'tester'
+        where board_idx = #{boardIdx}
+    </update>
+
+    <!-- 데이터를 삭제하지 않고, 삭제 여부 플래그만 변경 -->
+    <!--
+    <delete id="deleteBoard" parameterType="com.example.board.dto.BoardDto">
+        delete from t_board where board_idx = #{boardIdx}
+    </delete>
+     -->
+    <update id="deleteBoard" parameterType="com.example.board.dto.BoardDto">
+        update t_board set deleted_yn = 'Y'
+        , updated_datetime = now(), updator_id = 'tester'
+        where board_idx = #{boardIdx}
+    </update>
+
+    <insert id="insertBoardFileList" parameterType="com.example.board.dto.BoardFileDto">
+        insert into t_file (
+        board_idx, original_file_name, stored_file_path, file_size, creator_id, created_datetime
+        ) values
+
+        <foreach collection="list" item="item" separator=", ">
+            ( #{item.boardIdx}, #{item.originalFileName}, #{item.storedFilePath}, #{item.fileSize}, 'tester', now() )
+        </foreach>
+
+    </insert>
+
+    <select id="selectBoardFileList" parameterType="int" resultType="com.example.board.dto.BoardFileDto">
+        select idx, board_idx, original_file_name, format(round(file_size/1024), 0) as file_size
+        from t_file
+        where board_idx = #{boardIdx} and deleted_yn = 'N'
+    </select>
+
+    <!--  parameterType을 map으로 정의하면 임의의 데이터 타입을 설정해서 전달이 가능  -->
+    <select id="selectBoardFileInfo" parameterType="map" resultType="com.example.board.dto.BoardFileDto">
+        select original_file_name, stored_file_path, file_size
+        from t_file
+        where board_idx = #{boardIdx} and idx= #{idx} and deleted_yn = 'N'
+    </select>
+
+
+
+</mapper>
