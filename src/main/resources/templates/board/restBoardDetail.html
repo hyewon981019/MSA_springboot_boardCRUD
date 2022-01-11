@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h2>게시판 상세</h2>
+    <form id="frm" name="frm" method="post">
+        <input type="hidden" id="boardIdx" name="boardIdx" th:value="${resultDetail.boardIdx}" />
+        <!-- HiddenHttpMethodFilter에서 요청 방식 결정하는데 사용 -->
+        <input type="hidden" id="_method" name="_method" />
+        <table class="board_detail">
+            <colgroup>
+                <col width="15%" />
+                <col width="35%" />
+                <col width="15%" />
+                <col width="35%" />
+            </colgroup>
+            <tbody>
+            <tr>
+                <th scope="row">글번호</th>
+                <td th:text="${resultDetail.boardIdx}"></td>
+                <th scope="row">조회수</th>
+                <td th:text="${resultDetail.hitCnt}"></td>
+            </tr>
+            <tr>
+                <th scope="row">작성자</th>
+                <td th:text="${resultDetail.creatorId}"></td>
+                <th scope="row">작성일</th>
+                <td th:text="${resultDetail.createdDatetime}"></td>
+            </tr>
+            <tr>
+                <th scope="row">제목</th>
+                <td colspan="3">
+                    <input type="text" id="title" name="title" th:value="${resultDetail.title}" />
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">내용</th>
+                <td colspan="3">
+                    <textarea id="contents" name="contents"
+                              th:text="${resultDetail.contents}"></textarea>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+
+    <!-- 첨부파일 목록 -->
+    <div class="file_list">
+        <!-- Thymeleaf에서 | 기호를 사용하면 변수와 고정된 문자열을 혼합해서 출력이 가능 -->
+        <a th:each="list: ${resultDetail.fileInfoList}"
+           th:href="@{/board/file(idx=${list.idx}, boardIdx=${list.boardIdx})}"
+           th:text="|${list.originalFileName} (${list.fileSize}kb)|"></a>
+    </div>
+
+    <input type="button" id="list" class="btn" value="목록으로" />
+    <input type="button" id="edit" class="btn" value="수정하기" />
+    <input type="button" id="delete" class="btn" value="삭제하기" />
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+		$(function() {
+			var boardIdx = $('#boardIdx').val();
+
+			$('#list').on('click', function() {
+				location.href = '/board';
+			});
+			$('#edit').on('click', function() {
+				$('#_method').val('PUT');
+				let frm = $('#frm')[0];
+				frm.action = "/board/" + boardIdx;
+				frm.submit();
+			});
+			$('#delete').on('click', function() {
+				$('#_method').val('DELETE');
+				let frm = $('#frm')[0];
+				frm.action = "/board/" + boardIdx;
+				frm.submit();
+			});
+		});
+	</script>
+
+</body>
+</html>
