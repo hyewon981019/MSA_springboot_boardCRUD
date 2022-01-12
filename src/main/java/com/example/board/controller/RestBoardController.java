@@ -43,7 +43,22 @@ public class RestBoardController {
 
     @RequestMapping(value="/board/write", method=RequestMethod.GET)
     public String openBoardWrite() throws Exception {
-        return "/board/restBoardWrite";
+        return "/board/restB" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "" +
+                "oardWrite";
     }
 
     @RequestMapping(value="/board/write", method=RequestMethod.POST)
